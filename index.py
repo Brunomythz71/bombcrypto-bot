@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-    
-from src.logger import logger, loggerMapClicked
 from cv2 import cv2
+
+#from captcha.solveCaptcha import solveCaptcha
+
 from os import listdir
+from src.logger import logger, loggerMapClicked
 from random import randint
 from random import random
 import numpy as np
@@ -56,16 +59,6 @@ cat = """
 
 
 def addRandomness(n, randomn_factor_size=None):
-    """Returns n with randomness
-    Parameters:
-        n (int): A decimal integer
-        randomn_factor_size (int): The maximum value+- of randomness that will be
-            added to n
-
-    Returns:
-        int: n with randomness
-    """
-
     if randomn_factor_size is None:
         randomness_percentage = 0.1
         randomn_factor_size = randomness_percentage * n
@@ -78,13 +71,11 @@ def addRandomness(n, randomn_factor_size=None):
     # logger('{} with randomness -> {}'.format(int(n), randomized_n))
     return int(randomized_n)
 
-def moveToWithRandomness(x,y,t):
-    pyautogui.moveTo(addRandomness(x,10),addRandomness(y,10),t+random()/2)
+def moveToWithRandomness(x,y):
+    pyautogui.moveTo(addRandomness(x,10),addRandomness(y, 10), c['mouse_speed'] + random()/2, pyautogui.easeInOutQuad)
 
 
 def remove_suffix(input_string, suffix):
-    """Returns the input_string without the suffix"""
-
     if suffix and input_string.endswith(suffix):
         return input_string[:-len(suffix)]
     return input_string
@@ -107,7 +98,6 @@ def load_images(dir_path='./targets/'):
 
 
 def loadHeroesToSendHome():
-    """Loads the images in the path and saves them as a list"""
     file_names = listdir('./targets/heroes-to-send-home')
     heroes = []
     for file in file_names:
@@ -122,8 +112,6 @@ def loadHeroesToSendHome():
 
 
 def show(rectangles, img = None):
-    """ Show an popup with rectangles showing the rectangles[(x, y, w, h),...]
-        over img or a printSreen if no img provided. Useful for debugging"""
 
     if img is None:
         with mss.mss() as sct:
@@ -141,20 +129,13 @@ def show(rectangles, img = None):
 
 
 
-def clickBtn(img, timeout=3, threshold = ct['default']):
-    """Search for img in the scree, if found moves the cursor over it and clicks.
-    Parameters:
-        img: The image that will be used as an template to find where to click.
-        timeout (int): Time in seconds that it will keep looking for the img before returning with fail
-        threshold(float): How confident the bot needs to be to click the buttons (values from 0 to 1)
-    """
-
+def clickBtn(img,name=None, timeout=3, threshold = ct['default']):
     logger(None, progress_indicator=True)
     start = time.time()
     has_timed_out = False
     while(not has_timed_out):
         matches = positions(img, threshold=threshold)
-
+        
         if(len(matches)==0):
             has_timed_out = time.time()-start > timeout
             continue
@@ -162,7 +143,7 @@ def clickBtn(img, timeout=3, threshold = ct['default']):
         x,y,w,h = matches[0]
         pos_click_x = x+w/2
         pos_click_y = y+h/2
-        moveToWithRandomness(pos_click_x,pos_click_y,1)
+        moveToWithRandomness(pos_click_x,pos_click_y)
         pyautogui.click()
         return True
 
@@ -203,7 +184,7 @@ def scroll():
         return
     x,y,w,h = commoms[len(commoms)-1]
 #
-    moveToWithRandomness(x,y,1)
+    moveToWithRandomness(x,y)
 
     if not c['use_click_and_drag_instead_of_scroll']:
         pyautogui.scroll(-c['scroll_size'])
@@ -215,7 +196,7 @@ def clickButtons():
     buttons = positions(images['go-work'], threshold=ct['go_to_work_btn'])
     # print('buttons: {}'.format(len(buttons)))
     for (x, y, w, h) in buttons:
-        moveToWithRandomness(x+(w/2),y+(h/2),1)
+        moveToWithRandomness(x+(w/2), y+(h/2))
         pyautogui.click()
         global hero_clicks
         hero_clicks = hero_clicks + 1
@@ -268,7 +249,7 @@ def clickGreenBarButtons():
     hero_clicks_cnt = 0
     for (x, y, w, h) in not_working_green_bars:
         # isWorking(y, buttons)
-        moveToWithRandomness(x+offset+(w/2),y+(h/2),1)
+        moveToWithRandomness(x+offset+(w/2),y+(h/2))
         pyautogui.click()
         global hero_clicks
         hero_clicks = hero_clicks + 1
@@ -293,7 +274,7 @@ def clickFullBarButtons():
         logger('👆 Clicking in %d heroes' % len(not_working_full_bars))
 
     for (x, y, w, h) in not_working_full_bars:
-        moveToWithRandomness(x+offset+(w/2),y+(h/2),1)
+        moveToWithRandomness(x+offset+(w/2),y+(h/2))
         pyautogui.click()
         global hero_clicks
         hero_clicks = hero_clicks + 1
@@ -305,6 +286,7 @@ def goToHeroes():
         global login_attempts
         login_attempts = 0
 
+    #solveCaptcha(pause)
     #TODO tirar o sleep quando colocar o pulling
     time.sleep(1)
     clickBtn(images['hero-icon'])
@@ -339,6 +321,7 @@ def login():
 
     if clickBtn(images['connect-wallet'], timeout = 10):
         logger('🎉 Connect wallet button detected, logging in!')
+        #solveCaptcha(pause)
         login_attempts = login_attempts + 1
         #TODO mto ele da erro e poco o botao n abre
         # time.sleep(10)
@@ -408,7 +391,7 @@ def sendHeroesHome():
             print(isWorking(position, go_work_buttons))
             if(not isWorking(position, go_work_buttons)):
                 print ('hero not working, sending him home')
-                moveToWithRandomness(go_home_buttons[0][0]+go_home_buttons[0][2]/2,position[1]+position[3]/2,1)
+                moveToWithRandomness(go_home_buttons[0][0]+go_home_buttons[0][2]/2,position[1]+position[3]/2)
                 pyautogui.click()
             else:
                 print ('hero working, not sending him home(no dark work button)')
@@ -450,6 +433,18 @@ def refreshHeroes():
         time.sleep(2)
     logger('💪 {} heroes sent to work'.format(hero_clicks))
     goToGame()
+    
+def checkChest():
+    if clickBtn(images['chest'], name='chest'):
+        pass
+    if clickBtn(images['x'], timeout = 10):
+        pass
+
+def randomMoveCursor():
+    x = randint(160, 800)
+    y = randint(160, 800)
+
+    moveToWithRandomness(x,y)
 
 
 def main():
@@ -481,15 +476,17 @@ def main():
     "heroes" : 0,
     "new_map" : 0,
     "check_for_captcha" : 0,
-    "refresh_heroes" : 0
+    "refresh_heroes" : 0,
+    "random_movement": 0,
+    "chest": 0
     }
-    # =========
 
     while True:
         now = time.time()
 
         if now - last["check_for_captcha"] > addRandomness(t['check_for_captcha'] * 60):
             last["check_for_captcha"] = now
+            #solveCaptcha(pause)
 
         if now - last["heroes"] > addRandomness(t['send_heroes_for_work'] * 60):
             last["heroes"] = now
@@ -508,20 +505,31 @@ def main():
 
 
         if now - last["refresh_heroes"] > addRandomness( t['refresh_heroes_positions'] * 60):
+            #solveCaptcha(pause)
             last["refresh_heroes"] = now
             refreshHeroesPositions()
+            
+            
+        if now - last["chest"] > t['check_chest'] * 60:
+            logger("Checking chest.")
+            sys.stdout.flush()
+            last["chest"] = now
+            checkChest()
+
+        if now - last["random_movement"] > t['interval_between_random_moviments'] * 60 :
+            last["random_movement"] = now
+            logger('Moving the cursor randomly')
+            randomMoveCursor()
 
         #clickBtn(teasureHunt)
         logger(None, progress_indicator=True)
 
         sys.stdout.flush()
 
-        time.sleep(1)
-
-
+        time.sleep(randint(1,3))
 
 if __name__ == '__main__':
-
+       
 
 
     main()
