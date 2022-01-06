@@ -164,7 +164,7 @@
   # [pt_BR]
   #Velocidade do mouse
   # Valor padrão : 1
-  mouse_speed: 2
+  mouse_speed: 0.5
 
   # [pt_BR]
   # Valor padrão : 3

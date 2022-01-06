@@ -3,7 +3,7 @@ from cv2 import cv2
 
 #from captcha.solveCaptcha import solveCaptcha
 
-from os import listdir
+from os import listdir 
 from src.logger import logger, loggerMapClicked
 from random import randint
 from random import random
@@ -21,42 +21,6 @@ ct = c['threshold']
 ch = c['home']
 pause = c['time_intervals']['interval_between_moviments']
 pyautogui.PAUSE = pause
-
-cat = """
-                                                _
-                                                \`*-.
-                                                 )  _`-.
-                                                .  : `. .
-                                                : _   '  \\
-                                                ; *` _.   `*-._
-                                                `-.-'          `-.
-                                                  ;       `       `.
-                                                  :.       .        \\
-                                                  . \  .   :   .-'   .
-                                                  '  `+.;  ;  '      :
-                                                  :  '  |    ;       ;-.
-                                                  ; '   : :`-:     _.`* ;
-                                               .*' /  .*' ; .*`- +'  `*'
-                                               `*-*   `*-*  `*-*'
-=========================================================================
-========== 💰 Have I helped you in any way? All I ask is a tip! 🧾 ======
-========== ✨ Faça sua boa ação de hoje, manda aquela gorjeta! 😊 =======
-=========================================================================
-======================== vvv BCOIN BUSD BNB vvv =========================
-============== 0xbd06182D8360FB7AC1B05e871e56c76372510dDf ===============
-=========================================================================
-===== https://www.paypal.com/donate?hosted_button_id=JVYSC6ZYCNQQQ ======
-=========================================================================
-
->>---> Press ctrl + c to kill the bot.
-
->>---> Some configs can be found in the config.yaml file."""
-
-
-
-
-
-
 
 def addRandomness(n, randomn_factor_size=None):
     if randomn_factor_size is None:
@@ -162,6 +126,7 @@ def printSreen():
 def positions(target, threshold=ct['default'],img = None):
     if img is None:
         img = printSreen()
+        
     result = cv2.matchTemplate(img,target,cv2.TM_CCOEFF_NORMED)
     w = target.shape[1]
     h = target.shape[0]
@@ -287,10 +252,10 @@ def goToHeroes():
         login_attempts = 0
 
     #solveCaptcha(pause)
-    #TODO tirar o sleep quando colocar o pulling
-    time.sleep(1)
-    clickBtn(images['hero-icon'])
-    time.sleep(randint(1,3))
+    #hero_icons = positions(images['hero-icon'], threshold=ct['default'])
+    #time.sleep(1)
+    clickBtn(images['hero-icon'], 6)
+    #time.sleep(randint(1,3))
 
 def goToGame():
     # in case of server overload popup
@@ -326,7 +291,7 @@ def login():
         #TODO mto ele da erro e poco o botao n abre
         # time.sleep(10)
 
-    if clickBtn(images['select-wallet-2'], timeout=8):
+    if clickBtn(images['select-wallet-2'], timeout = 8):
         # sometimes the sign popup appears imediately
         login_attempts = login_attempts + 1
         # print('sign button clicked')
@@ -334,6 +299,9 @@ def login():
         if clickBtn(images['treasure-hunt-icon'], timeout = 15):
             # print('sucessfully login, treasure hunt btn clicked')
             login_attempts = 0
+            logger('sucess login, treasure hunt btn clicked');
+            #é possível estava deslogado a algum tempo, então seria bom verificar se existe heroes prontos para trabalhar
+            refreshHeroes();
         return
         # click ok button
 
@@ -417,7 +385,7 @@ def refreshHeroes():
     buttonsClicked = 1
     empty_scrolls_attempts = c['scroll_attemps']
 
-    while(empty_scrolls_attempts >0):
+    while(empty_scrolls_attempts > 0):
         if c['select_heroes_mode'] == 'full':
             buttonsClicked = clickFullBarButtons()
         elif c['select_heroes_mode'] == 'green':
@@ -467,7 +435,6 @@ def main():
         print('>>---> Home feature not enabled')
     print('\n')
 
-    print(cat)
     time.sleep(7)
     t = c['time_intervals']
 
@@ -484,8 +451,8 @@ def main():
     while True:
         now = time.time()
 
-        if now - last["check_for_captcha"] > addRandomness(t['check_for_captcha'] * 60):
-            last["check_for_captcha"] = now
+        #if now - last["check_for_captcha"] > addRandomness(t['check_for_captcha'] * 60):
+            #last["check_for_captcha"] = now
             #solveCaptcha(pause)
 
         if now - last["heroes"] > addRandomness(t['send_heroes_for_work'] * 60):
@@ -522,11 +489,11 @@ def main():
             randomMoveCursor()
 
         #clickBtn(teasureHunt)
-        logger(None, progress_indicator=True)
+        logger(None, progress_indicator = True)
 
         sys.stdout.flush()
 
-        time.sleep(randint(1,3))
+        time.sleep(randint(2,5))
 
 if __name__ == '__main__':
        
